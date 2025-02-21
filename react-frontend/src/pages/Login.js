@@ -19,7 +19,7 @@ const Login = () => {
 
       localStorage.setItem("token", response.data.access_token);
       console.log("Login successful:", response.data);
-      navigate("/dashboard"); // Redirect to dashboard (update as needed)
+      navigate("/dashboard"); // Redirect to dashboard
     } catch (error) {
       setErrorMessage("Invalid username or password");
     }
@@ -33,11 +33,15 @@ const Login = () => {
         <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         <button type="submit">Login</button>
       </form>
-      {errorMessage && <p>{errorMessage}</p>}
+      {errorMessage && <p style={styles.error}>{errorMessage}</p>}
     </div>
   );
 };
 
-const styles = { container: { textAlign: "center", marginTop: "50px" } };
+// ✅ Define styles object here
+const styles = {
+  container: { textAlign: "center", marginTop: "50px" },
+  error: { color: "red", marginTop: "10px" }
+};
 
 export default Login;
