@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import "../styles/styles.css";
 import { useNavigate } from "react-router-dom";
 
 const Login = () => {
@@ -26,7 +27,7 @@ const Login = () => {
   };
 
   return (
-    <div style={styles.container}>
+    <div className="login-container">
       <h2>Login</h2>
       <form onSubmit={handleLogin}>
         <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} required />

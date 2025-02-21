@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import "../styles/styles.css";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -12,9 +13,11 @@ const Dashboard = () => {
   }, [navigate]);
 
   return (
-    <div style={styles.container}>
+    <div className="dashboard-container">
       <h2>Dashboard</h2>
-      <p>Welcome</p>
+      <p>Welcome to HomeSentinel</p>
+      <button onClick={() => navigate("/create-face-recognition")}>Create Face Recognition</button>
+      <button onClick={() => navigate("/view-logs")}>View Logs</button>
       <button onClick={() => {
         localStorage.removeItem("token");
         navigate("/login");
@@ -24,7 +27,5 @@ const Dashboard = () => {
     </div>
   );
 };
-
-const styles = { container: { textAlign: "center", marginTop: "50px" } };
 
 export default Dashboard;
