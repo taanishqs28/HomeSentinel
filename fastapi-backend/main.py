@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from passlib.context import CryptContext
 import jwt
@@ -7,6 +7,15 @@ from datetime import datetime, timedelta
 from motor.motor_asyncio import AsyncIOMotorClient
 
 app = FastAPI()
+
+# Enable CORS to allow frontend requests
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Allow frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # MongoDB Connection
 MONGO_URI = "mongodb://localhost:27017"
@@ -21,7 +30,6 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 # Password Hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 
 class User(BaseModel):
@@ -37,15 +45,16 @@ def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def create_access_token(data: dict, expires_delta: timedelta = None):
-    to_encode = data.copy()
+def create_access_token(username: str):
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    token_data = {"sub": username, "exp": expire}
+    return jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
+
 
 @app.get("/")
 def home():
     return {"message": "FastAPI is running!"}
+
 
 @app.post("/auth/register")
 async def register(user: User):
@@ -60,12 +69,10 @@ async def register(user: User):
 
 
 @app.post("/auth/login")
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = await users_collection.find_one({"username": form_data.username})
-    if not user or not verify_password(form_data.password, user["password"]):
+async def login(user: User):
+    existing_user = await users_collection.find_one({"username": user.username})
+    if not existing_user or not verify_password(user.password, existing_user["password"]):
         raise HTTPException(status_code=400, detail="Invalid username or password")
 
-    token_data = {"sub": form_data.username}
-    access_token = create_access_token(token_data)
-
+    access_token = create_access_token(user.username)
     return {"access_token": access_token, "token_type": "bearer"}

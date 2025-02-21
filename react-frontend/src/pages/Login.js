@@ -10,20 +10,23 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+
     try {
       const response = await axios.post("http://localhost:8000/auth/login", {
         username,
-        password,
+        password
       });
+
       localStorage.setItem("token", response.data.access_token);
-      navigate("/dashboard");
+      console.log("Login successful:", response.data);
+      navigate("/dashboard"); // Redirect to dashboard (update as needed)
     } catch (error) {
       setErrorMessage("Invalid username or password");
     }
   };
 
   return (
-    <div>
+    <div style={styles.container}>
       <h2>Login</h2>
       <form onSubmit={handleLogin}>
         <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} required />
@@ -34,5 +37,7 @@ const Login = () => {
     </div>
   );
 };
+
+const styles = { container: { textAlign: "center", marginTop: "50px" } };
 
 export default Login;
