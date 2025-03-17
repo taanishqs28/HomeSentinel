@@ -1,78 +1,56 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from passlib.context import CryptContext
-import jwt
-from datetime import datetime, timedelta
+from datetime import datetime
+import dlib
+import numpy as np
+import cv2
+from scipy.spatial.distance import cosine
 from motor.motor_asyncio import AsyncIOMotorClient
+from config import db, users_collection
 
 app = FastAPI()
 
-# Enable CORS to allow frontend requests
+# Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Allow frontend URL
+    allow_origins=["http://localhost:3000"],  # Allow frontend requests
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# MongoDB Connection
-MONGO_URI = "mongodb://localhost:27017"
-client = AsyncIOMotorClient(MONGO_URI)
-db = client["auth_db"]
-users_collection = db["users"]
+# Load Dlib models
+face_rec_model = dlib.face_recognition_model_v1("dlib_face_recognition_resnet_model_v1.dat")
+detector = dlib.get_frontal_face_detector()
+shape_predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
 
-# JWT Configuration
-SECRET_KEY = "your_secret_key"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+@app.post("/verify-face/")
+async def verify_face(file: UploadFile = File(...)):
+    # Read image
+    contents = await file.read()
+    nparr = np.frombuffer(contents, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-# Password Hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    # Convert to RGB and detect face
+    rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    faces = detector(rgb_img)
 
+    if not faces:
+        raise HTTPException(status_code=400, detail="No face detected")
 
-class User(BaseModel):
-    username: str
-    password: str
+    # Extract face encoding
+    shape = shape_predictor(rgb_img, faces[0])
+    face_descriptor = face_rec_model.compute_face_descriptor(rgb_img, shape)
+    input_embedding = np.array(face_descriptor)
 
+    # KNN Search for Closest Match
+    users = await users_collection.find().to_list(100)
+    
+    for user in users:
+        stored_embedding = np.array(user["face_embedding"])
+        similarity = 1 - cosine(input_embedding, stored_embedding)
 
-def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+        if similarity > 0.7:  # 70% threshold
+            return {"status": "Access Granted", "user": user["username"]}
 
-
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
-
-
-def create_access_token(username: str):
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    token_data = {"sub": username, "exp": expire}
-    return jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
-
-
-@app.get("/")
-def home():
-    return {"message": "FastAPI is running!"}
-
-
-@app.post("/auth/register")
-async def register(user: User):
-    existing_user = await users_collection.find_one({"username": user.username})
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Username already exists")
-
-    hashed_password = hash_password(user.password)
-    new_user = {"username": user.username, "password": hashed_password}
-    await users_collection.insert_one(new_user)
-    return {"message": "User registered successfully"}
-
-
-@app.post("/auth/login")
-async def login(user: User):
-    existing_user = await users_collection.find_one({"username": user.username})
-    if not existing_user or not verify_password(user.password, existing_user["password"]):
-        raise HTTPException(status_code=400, detail="Invalid username or password")
-
-    access_token = create_access_token(user.username)
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"status": "Access Denied"}
