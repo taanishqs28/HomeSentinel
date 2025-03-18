@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from models.user import UserModel
+from models.users import UserModel
 from config import users_collection, hash_password, verify_password, create_access_token
 
 router = APIRouter()

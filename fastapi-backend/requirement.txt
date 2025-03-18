@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+pydantic
+motor
+passlib
+bcrypt
+python-jose
+opencv-python
+numpy
+scipy
+dlib
