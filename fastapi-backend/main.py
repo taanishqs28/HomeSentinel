@@ -5,7 +5,7 @@ import dlib
 import numpy as np
 import cv2
 from scipy.spatial.distance import cosine
-from motor.motor_asyncio import AsyncIOMotorClient
+from motor.motor_asyncio import AsyncIOdeaMotorClient
 from config import db, users_collection
 
 app = FastAPI()
