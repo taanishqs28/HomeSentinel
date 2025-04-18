@@ -15,12 +15,11 @@ const Login = () => {
     try {
       const response = await axios.post("http://localhost:8000/auth/login", {
         username,
-        password
+        password,
       });
 
       localStorage.setItem("token", response.data.access_token);
-      console.log("Login successful:", response.data);
-      navigate("/dashboard"); // Redirect to dashboard
+      navigate("/dashboard");
     } catch (error) {
       setErrorMessage("Invalid username or password");
     }
@@ -30,19 +29,38 @@ const Login = () => {
     <div className="login-container">
       <h2>Login</h2>
       <form onSubmit={handleLogin}>
-        <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} required />
-        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
         <button type="submit">Login</button>
       </form>
-      {errorMessage && <p style={styles.error}>{errorMessage}</p>}
+
+      {/* Show error if login fails */}
+      {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
+
+      {/* Register Button */}
+      <p style={{ marginTop: "20px" }}>
+        New user?{" "}
+        <button
+          onClick={() => navigate("/register")}
+          style={{ background: "none", border: "none", color: "blue", textDecoration: "underline", cursor: "pointer" }}
+        >
+          Register here
+        </button>
+      </p>
     </div>
   );
-};
-
-// ✅ Define styles object here
-const styles = {
-  container: { textAlign: "center", marginTop: "50px" },
-  error: { color: "red", marginTop: "10px" }
 };
 
 export default Login;
