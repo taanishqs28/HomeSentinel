@@ -1,29 +1,46 @@
-from fastapi import APIRouter, HTTPException, Depends
-from models.users import UserModel
-from config import users_collection, hash_password, verify_password, create_access_token
+# fastapi-backend/routes/auth.py
+from fastapi import APIRouter, HTTPException
+from models.users import UserModel, LoginModel
+from config import users_collection, households_collection
+from services.auth_service import hash_password, verify_password, create_access_token
+from datetime import datetime
 
-router = APIRouter()
+router = APIRouter(prefix="/auth")
 
 @router.post("/register")
 async def register(user: UserModel):
-    existing_user = await users_collection.find_one({"username": user.username})
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Username already exists")
+    # ensure unique email/username
+    if await users_collection.find_one({"$or":[{"email": user.email},{"username":user.username}]}):
+        raise HTTPException(400, "Email or username already exists")
 
-    hashed_password = hash_password(user.password)
-    new_user = {
-        "username": user.username,
-        "password": hashed_password,
-        "face_embedding": [],
+    # insert user
+    user_doc = {
+      "household_id":   user.household_id,
+      "name":           user.name,
+      "email":          user.email,
+      "username":       user.username,
+      "password":       hash_password(user.password),
+      "face_embedding": [],
+      "role":           user.role,
+      "created_at":     datetime.utcnow()
     }
-    await users_collection.insert_one(new_user)
-    return {"message": "User registered successfully"}
+    result = await users_collection.insert_one(user_doc)
+
+    # add to household if provided
+    if user.household_id:
+        await households_collection.update_one(
+          {"_id": user.household_id},
+          {"$push": {"member_user_ids": str(result.inserted_id)}}
+        )
+
+    return {"message": "User registered successfully", "id": str(result.inserted_id)}
 
 @router.post("/login")
-async def login(user: UserModel):
-    existing_user = await users_collection.find_one({"username": user.username})
-    if not existing_user or not verify_password(user.password, existing_user["password"]):
-        raise HTTPException(status_code=400, detail="Invalid credentials")
+async def login(credentials: LoginModel):
+    # look up by username
+    record = await users_collection.find_one({"username": credentials.username})
+    if not record or not verify_password(credentials.password, record["password"]):
+        raise HTTPException(400, "Invalid credentials")
 
-    access_token = create_access_token(user.username)
-    return {"access_token": access_token, "token_type": "bearer"}
+    token = create_access_token(credentials.username)
+    return {"access_token": token, "token_type": "bearer"}
