@@ -1,13 +1,24 @@
-from pydantic import BaseModel
+# fastapi-backend/models/users.py
+from pydantic import BaseModel, EmailStr, Field
 from typing import List, Optional
-from bson import ObjectId
+from datetime import datetime
 
 class UserModel(BaseModel):
-    id: Optional[str]  # MongoDB's `_id` field
-    username: str
-    password: str  # Hashed password
-    face_embedding: List[float]  # Stored face encoding
-    created_at: Optional[str]
+    household_id: Optional[str]
+    name:         str
+    email:        EmailStr
+    username:     str
+    password:     str = Field(..., min_length=8)
+    role:         str = Field("user", pattern="^(admin|user)$")
+    face_embedding: List[float] = []
+    created_at:   Optional[datetime]
 
     class Config:
-        orm_mode = True
+        from_attributes = True  # note: pydantic v2 key
+
+class LoginModel(BaseModel):
+    username: str
+    password: str = Field(..., min_length=8)
+
+    class Config:
+        from_attributes = True
