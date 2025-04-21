@@ -1,16 +1,16 @@
 import React, { useState } from "react";
-import axios from "axios";
 import "../styles/styles.css";
 import { useNavigate } from "react-router-dom";
+import api from "../api";
 
 const Register = () => {
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    username: "",
-    password: "",
-  });
+       firstName: "",
+        lastName: "",
+        email: "",
+        username: "",
+        password: "",
+      });
 
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
@@ -23,7 +23,12 @@ const Register = () => {
     e.preventDefault();
 
     try {
-      const response = await axios.post("http://localhost:8000/auth/register", formData);
+      await api.post("/auth/register", {
+               name:     `${formData.firstName} ${formData.lastName}`,
+               email:    formData.email,
+               username: formData.username,
+               password: formData.password,
+             });
       setMessage("Registration successful! Redirecting to login...");
       setTimeout(() => navigate("/login"), 2000);
     } catch (error) {
