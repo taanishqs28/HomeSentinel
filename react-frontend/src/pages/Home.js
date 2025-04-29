@@ -1,33 +1,28 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 
 const Home = () => {
-  const navigate = useNavigate();
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState("");
+  const nav              = useNavigate();
 
   const handleAccess = async () => {
-    if (!file) {
-      setMessage("Please upload a face image first.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", file);
+    if (!file) return alert("Upload a face first.");
+    const fd = new FormData();
+    fd.append("file", file);
 
     try {
-      const res = await axios.post("http://localhost:8000/verify-face/", formData, {
+      const { data } = await api.post("/face/verify", fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
-      if (res.data.status === "Access Granted") {
-        navigate("/access-granted", { state: { user: res.data.user } });
+      if (data.status === "Access Granted") {
+        nav("/access-granted", { state: { user: data.user } });
       } else {
-        navigate("/access-denied");
+        nav("/access-denied");
       }
-    } catch (error) {
-      navigate("/access-denied");
+    } catch {
+      nav("/access-denied");
     }
   };
 
@@ -47,7 +42,7 @@ const Home = () => {
         Gain Access
       </button>
 
-      <button onClick={() => navigate("/login")}>Login</button>
+      <button onClick={() => nav("/login")}>Login</button>
 
       {message && <p style={{ color: "red" }}>{message}</p>}
     </div>

@@ -55,6 +55,10 @@ const Login = () => {
         >
           Register here
         </button>
+        <button
+          onClick={() => navigate("/")}
+          style={{ background: "none", border: "none", color: "blue", textDecoration: "underline", cursor: "pointer", marginLeft: "10px" }}
+        >Back</button>
       </p>
     </div>
   );

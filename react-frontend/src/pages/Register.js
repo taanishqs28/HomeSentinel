@@ -5,12 +5,12 @@ import api from "../api";
 
 const Register = () => {
   const [formData, setFormData] = useState({
-       firstName: "",
-        lastName: "",
-        email: "",
-        username: "",
-        password: "",
-      });
+    firstName: "",
+    lastName: "",
+    email: "",
+    username: "",
+    password: "",
+  });
 
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
@@ -22,17 +22,53 @@ const Register = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
 
+    // ✅ Frontend validation
+    if (
+      !formData.firstName ||
+      !formData.lastName ||
+      !formData.email ||
+      !formData.username ||
+      !formData.password
+    ) {
+      setMessage("Please fill in all fields.");
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      setMessage("Password must be at least 8 characters long.");
+      return;
+    }
+
+    const payload = {
+      name: `${formData.firstName} ${formData.lastName}`,
+      email: formData.email,
+      username: formData.username,
+      password: formData.password,
+      role: "user",
+      household_id: null,
+      face_embedding: [],
+      created_at: new Date().toISOString(),
+    };
+
+    console.log("📦 Sending payload to backend:", payload);
+
     try {
-      await api.post("/auth/register", {
-               name:     `${formData.firstName} ${formData.lastName}`,
-               email:    formData.email,
-               username: formData.username,
-               password: formData.password,
-             });
-      setMessage("Registration successful! Redirecting to login...");
+      await api.post("/auth/register", payload);
+      setMessage("✅ Registration successful! Redirecting to login...");
       setTimeout(() => navigate("/login"), 2000);
     } catch (error) {
-      setMessage(error.response?.data?.detail || "Registration failed");
+      console.error("❌ Registration error:", error.response?.data);
+
+      const detail = error.response?.data?.detail;
+
+      if (Array.isArray(detail)) {
+        const msg = detail.map((e) => `${e.loc.join(".")}: ${e.msg}`).join(" | ");
+        setMessage("Registration failed: " + msg);
+      } else if (typeof detail === "object") {
+        setMessage("Registration failed: " + (detail.msg || JSON.stringify(detail)));
+      } else {
+        setMessage("Registration failed: " + (detail || error.message));
+      }
     }
   };
 
@@ -82,9 +118,11 @@ const Register = () => {
         />
         <button type="submit">Register</button>
       </form>
-      {message && <p>{message}</p>}
+
+      {message && <p style={{ color: message.includes("failed") ? "red" : "green" }}>{message}</p>}
     </div>
   );
 };
 
 export default Register;
+
