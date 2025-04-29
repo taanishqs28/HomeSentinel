@@ -38,10 +38,7 @@ async def enroll_face(
     return {"message": "Face enrolled"}
 
 @router.post("/verify")
-async def verify_face(
-    file: UploadFile = File(...),
-    user=Depends(get_current_user)
-):
+async def verify_face(file: UploadFile = File(...)):
     data = await file.read()
     img  = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
     rgb  = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
