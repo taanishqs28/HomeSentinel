@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from config import users_collection, households_collection
 from routes import auth, face_recognition, logs
+from routes import household_route as household
 
 
 app = FastAPI()
@@ -18,6 +19,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(face_recognition.router)
 app.include_router(logs.router)
+app.include_router(household.router)
 
 @app.on_event("startup")
 async def ensure_indexes():
