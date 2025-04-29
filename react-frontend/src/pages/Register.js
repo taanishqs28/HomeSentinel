@@ -10,6 +10,7 @@ const Register = () => {
     email: "",
     username: "",
     password: "",
+    isAdmin: false,
   });
 
   const [message, setMessage] = useState("");
@@ -44,13 +45,13 @@ const Register = () => {
       email: formData.email,
       username: formData.username,
       password: formData.password,
-      role: "user",
+      role: formData.isAdmin ? "admin" : "user",
       household_id: null,
       face_embedding: [],
       created_at: new Date().toISOString(),
     };
 
-    console.log("📦 Sending payload to backend:", payload);
+    console.log("Sending payload to backend:", payload);
 
     try {
       await api.post("/auth/register", payload);
@@ -116,6 +117,15 @@ const Register = () => {
           onChange={handleChange}
           required
         />
+
+        <label style={{ display: "block", marginTop: "10px" }}>
+          <input
+            type="checkbox"
+            checked={formData.isAdmin}
+            onChange={(e) => setFormData({ ...formData, isAdmin: e.target.checked })}
+          />
+          Register as Admin
+        </label>
         <button type="submit">Register</button>
       </form>
 

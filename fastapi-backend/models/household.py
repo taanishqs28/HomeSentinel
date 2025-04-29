@@ -6,7 +6,7 @@ from datetime import datetime
 class HouseholdModel(BaseModel):
     name:            str
     address:         Optional[str]
-    admin_user_id:   str
+    admin_user_id:   List[str] = [] # to support multiple admins
     member_user_ids: List[str] = []
     created_at:      Optional[datetime]
 
