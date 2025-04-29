@@ -19,6 +19,8 @@ const Dashboard = () => {
       <button onClick={() => navigate("/create-face-recognition")}>Create Face Recognition</button>
       <button onClick={() => navigate("/view-logs")}>View Logs</button>
       <button onClick={() => navigate("/create-household")}>Create Household</button>
+      <button onClick={() => navigate("/manage-household")}>Manage Household</button>
+
       <button onClick={() => {
         localStorage.removeItem("token");
         navigate("/login");
