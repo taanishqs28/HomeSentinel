@@ -13,6 +13,7 @@ import AccessDenied from "./pages/AccessDenied";
 import CreateFaceRecognition from "./pages/CreateFaceRecognition";
 import ViewLogs from "./pages/view-logs";
 import CreateHousehold from "./pages/CreateHousehold";
+import ManageHousehold from "./pages/ManageHousehold";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
         <Route path="/create-face-recognition" element={<CreateFaceRecognition />} />
         <Route path="/view-logs" element={<ViewLogs />} />
         <Route path="/create-household" element={<CreateHousehold />} />
+        <Route path="/manage-household" element={<ManageHousehold />} />
         <Route path="*" element={<Home />} />
       </Routes>
     </Router>
