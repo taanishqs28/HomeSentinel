@@ -1,0 +1,63 @@
+.manage-household-container {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: sans-serif;
+  }
+  
+  .member-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .member-info {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .member-name {
+    font-weight: bold;
+    font-size: 1rem;
+  }
+  
+  .member-role {
+    font-size: 0.85rem;
+    color: #888;
+    text-transform: uppercase;
+  }
+  
+  .member-actions {
+    position: relative;
+  }
+  
+  .actions-button {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  
+  .dropdown {
+    position: absolute;
+    top: 24px;
+    right: 0;
+    background: white;
+    border: 1px solid #ccc;
+    padding: 5px 10px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    z-index: 10;
+  }
+  
+  .dropdown button {
+    display: block;
+    background: none;
+    border: none;
+    text-align: left;
+    padding: 5px 0;
+    cursor: pointer;
+    width: 100%;
+  }
+  
