@@ -2,7 +2,10 @@ from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime
 from config import households_collection, users_collection
 from services.auth_service import get_current_user
+from services.email_utils import send_invite_email
 from bson import ObjectId
+from config import invites_collection  
+import uuid
 
 router = APIRouter(prefix="/household", tags=["household"])
 
@@ -54,3 +57,118 @@ async def get_household_members(user=Depends(get_current_user)):
         m.pop("face_embedding", None)
 
     return members
+
+@router.post("/promote")
+async def promote_to_admin(data: dict, user=Depends(get_current_user)):
+    from bson import ObjectId
+
+    target_id = data.get("user_id")
+    if not target_id:
+        raise HTTPException(400, "Missing user_id")
+
+    household = await households_collection.find_one({"_id": ObjectId(user["household_id"])})
+    if not household or str(user["_id"]) not in household["admin_user_ids"]:
+        raise HTTPException(403, "Only admins can promote")
+
+    target_user = await users_collection.find_one({"_id": ObjectId(target_id)})
+    if not target_user or target_user.get("household_id") != user["household_id"]:
+        raise HTTPException(404, "Target user not found or not in household")
+
+    if target_user["role"] == "admin":
+        return {"message": "User is already an admin"}
+
+    # Promote
+    await users_collection.update_one({"_id": ObjectId(target_id)}, {"$set": {"role": "admin"}})
+    await households_collection.update_one(
+        {"_id": ObjectId(user["household_id"])},
+        {"$addToSet": {"admin_user_ids": str(target_user["_id"])}}
+    )
+
+    return {"message": "User promoted to admin"}
+
+@router.post("/remove-member")
+async def remove_member(data: dict, user=Depends(get_current_user)):
+    from bson import ObjectId
+
+    target_id = data.get("user_id")
+    if not target_id:
+        raise HTTPException(400, "Missing user_id")
+
+    if str(user["_id"]) == target_id:
+        raise HTTPException(400, "You cannot remove yourself")
+
+    household = await households_collection.find_one({"_id": ObjectId(user["household_id"])})
+    if not household or str(user["_id"]) not in household["admin_user_ids"]:
+        raise HTTPException(403, "Only admins can remove members")
+
+    target_user = await users_collection.find_one({"_id": ObjectId(target_id)})
+    if not target_user or target_user.get("household_id") != user["household_id"]:
+        raise HTTPException(404, "User not found in household")
+
+    # Remove role and household_id
+    await users_collection.update_one(
+        {"_id": ObjectId(target_id)},
+        {"$set": {"household_id": None, "role": "user"}}
+    )
+
+    await households_collection.update_one(
+        {"_id": ObjectId(user["household_id"])},
+        {
+            "$pull": {
+                "member_user_ids": target_id,
+                "admin_user_ids": target_id,
+            }
+        }
+    )
+
+    return {"message": "User removed from household"}
+
+
+@router.post("/invite")
+async def invite_user(data: dict, user=Depends(get_current_user)):
+    if not user.get("household_id"):
+        raise HTTPException(400, "You are not part of a household")
+
+    household = await households_collection.find_one({"_id": ObjectId(user["household_id"])})
+    if not household or str(user["_id"]) not in household.get("admin_user_ids", []):
+        raise HTTPException(403, "Only admins can invite users")
+
+    name = data.get("name")
+    email = data.get("email")
+
+    if not name or not email:
+        raise HTTPException(400, "Name and email are required")
+
+    # Check for existing invite
+    existing = await invites_collection.find_one({
+        "email": email,
+        "household_id": user["household_id"],
+        "used": False
+    })
+    if existing:
+        raise HTTPException(400, "This person has already been invited.")
+
+    token = str(uuid.uuid4())
+
+    invite_doc = {
+        "name": name,
+        "email": email,
+        "token": token,
+        "household_id": user["household_id"],
+        "inviter_id": str(user["_id"]),
+        "used": False,
+        "created_at": datetime.utcnow()
+    }
+
+    await invites_collection.insert_one(invite_doc)
+    invite_url = f"http://localhost:3000/register-invite/{token}"
+    try:
+        send_invite_email(email, name, invite_url)
+    except Exception as e:
+        print("Warning: invite email failed:", str(e))
+
+    return {
+        "message": "Invite created successfully.",
+        "invite_token": token,
+        "invite_url": invite_url
+    }
