@@ -1,5 +1,6 @@
+// src/pages/Register.js
 import React, { useState } from "react";
-import "../styles/styles.css";
+import "../styles/Register.css";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 
@@ -13,6 +14,7 @@ const Register = () => {
     isAdmin: false,
   });
 
+  const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
@@ -23,7 +25,6 @@ const Register = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
 
-    // ✅ Frontend validation
     if (
       !formData.firstName ||
       !formData.lastName ||
@@ -51,22 +52,15 @@ const Register = () => {
       created_at: new Date().toISOString(),
     };
 
-    console.log("Sending payload to backend:", payload);
-
     try {
       await api.post("/auth/register", payload);
       setMessage("✅ Registration successful! Redirecting to login...");
       setTimeout(() => navigate("/login"), 2000);
     } catch (error) {
-      console.error("❌ Registration error:", error.response?.data);
-
       const detail = error.response?.data?.detail;
-
       if (Array.isArray(detail)) {
         const msg = detail.map((e) => `${e.loc.join(".")}: ${e.msg}`).join(" | ");
         setMessage("Registration failed: " + msg);
-      } else if (typeof detail === "object") {
-        setMessage("Registration failed: " + (detail.msg || JSON.stringify(detail)));
       } else {
         setMessage("Registration failed: " + (detail || error.message));
       }
@@ -74,65 +68,110 @@ const Register = () => {
   };
 
   return (
-    <div className="register-container">
-      <h2>Register</h2>
-      <form onSubmit={handleRegister}>
-        <input
-          type="text"
-          name="firstName"
-          placeholder="First Name"
-          value={formData.firstName}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="text"
-          name="lastName"
-          placeholder="Last Name"
-          value={formData.lastName}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="text"
-          name="username"
-          placeholder="Username"
-          value={formData.username}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={handleChange}
-          required
-        />
+    <div className="register-page">
+      <div className="top-left">
+        <button onClick={() => navigate("/")} className="home-button">Home</button>
+      </div>
 
-        <label style={{ display: "block", marginTop: "10px" }}>
+      <div className="register-container">
+        <h2>Register</h2>
+        <form onSubmit={handleRegister}>
           <input
-            type="checkbox"
-            checked={formData.isAdmin}
-            onChange={(e) => setFormData({ ...formData, isAdmin: e.target.checked })}
+            type="text"
+            name="firstName"
+            placeholder="First Name"
+            value={formData.firstName}
+            onChange={handleChange}
+            required
           />
-          Register as Admin
-        </label>
-        <button type="submit">Register</button>
-      </form>
+          <input
+            type="text"
+            name="lastName"
+            placeholder="Last Name"
+            value={formData.lastName}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="text"
+            name="username"
+            placeholder="Username"
+            value={formData.username}
+            onChange={handleChange}
+            required
+          />
 
-      {message && <p style={{ color: message.includes("failed") ? "red" : "green" }}>{message}</p>}
+          <div className="password-input-group">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+            <span
+              role="button"
+              className="eye-button"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label="Toggle password visibility"
+            >
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                {showPassword ? (
+                  <path d="M12 5C7 5 2.7 8.6 1 12c1.7 3.4 6 7 11 7s9.3-3.6 11-7c-1.7-3.4-6-7-11-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10z" />
+                ) : (
+                  <path d="M12 5c-7 0-11 7-11 7s4 7 11 7 11-7 11-7-4-7-11-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10z" />
+                )}
+              </svg>
+            </span>
+          </div>
+
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={formData.isAdmin}
+              onChange={(e) =>
+                setFormData({ ...formData, isAdmin: e.target.checked })
+              }
+            />
+            Register as Admin
+          </label>
+
+          <button type="submit">Register</button>
+
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => navigate("/login")}
+          >
+            Already have an account? Login
+          </button>
+        </form>
+
+        <div className="legend">
+          <ul>
+            <li>Username must be unique</li>
+            <li>Password must be at least 8 characters</li>
+            <li>All fields are required</li>
+          </ul>
+        </div>
+
+        {message && (
+          <p className={message.includes("failed") ? "error-message" : "success-message"}>
+            {message}
+          </p>
+        )}
+      </div>
     </div>
   );
 };
 
 export default Register;
-

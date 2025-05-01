@@ -1,0 +1,157 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f2f4f8;
+    margin: 0;
+  }
+  
+  .login-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
+  
+  .login-container {
+    background-color: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .login-container h2 {
+    text-align: center;
+    margin-bottom: 32px;
+    font-size: 28px;
+    color: #333;
+  }
+  
+  .login-container input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 16px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    box-sizing: border-box;
+  }
+  
+  .password-input-group {
+    position: relative;
+    margin-bottom: 16px;
+  }
+  
+  .password-input-group input {
+    width: 100%;
+    padding: 12px;
+    padding-right: 44px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    box-sizing: border-box;
+  }
+  
+  .password-input-group input:focus {
+    border-color: #007bff;
+    outline: none;
+  }
+  
+  /* 👁 Icon Span for Toggle */
+  .eye-button {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    height: 100%;
+    width: 24px;
+    user-select: none;
+  }
+  
+  .eye-button svg {
+    width: 20px;
+    height: 20px;
+    fill: #007bff;
+    transition: fill 0.2s ease;
+  }
+  
+  .eye-button:hover svg {
+    fill: #0056b3;
+  }
+  
+  .login-container button[type="submit"] {
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 8px;
+    margin-bottom: 16px;
+  }
+  
+  .login-container button[type="submit"]:hover {
+    background-color: #0056b3;
+  }
+  
+  .link-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+  }
+  
+  .link-buttons button {
+    background: none;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    font-size: 14px;
+    text-decoration: underline;
+    padding: 0;
+  }
+  
+  .error-message {
+    color: red;
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  .top-left {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+  }
+  
+  .home-button {
+    background-color: transparent;
+    color: #007bff;
+    border: 2px solid #007bff;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .home-button:hover {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  
