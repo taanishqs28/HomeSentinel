@@ -82,3 +82,44 @@ button:hover {
     color: green;
     margin-top: 10px;
 }
+
+.view-logs-container {
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 20px;
+  font-family: 'Segoe UI', sans-serif;
+  background: #f5f7fa;
+  border-radius: 8px;
+}
+
+.logs-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.log-card {
+  background: white;
+  padding: 15px 20px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border-left: 5px solid #1976d2;
+}
+
+.log-timestamp {
+  font-weight: bold;
+  color: #555;
+  margin-bottom: 4px;
+}
+
+.log-user {
+  color: #777;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.log-event {
+  font-size: 15px;
+  color: #333;
+}
+
