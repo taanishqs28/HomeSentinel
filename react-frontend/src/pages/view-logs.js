@@ -8,54 +8,44 @@ const ViewLogs = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setError("Unauthorized. Please log in.");
-      setLoading(false);
-      return;
-    }
-
-    fetch("http://localhost:5000/api/logs", {
-      method: "GET",
+    fetch("http://localhost:8000/api/logs", {
       headers: {
-        Authorization: `Bearer ${token}`,
-      },
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+      }
     })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to fetch logs");
-        }
-        return response.json();
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch logs");
+        return res.json();
       })
-      .then((data) => {
+      .then(data => {
         setLogs(data);
         setLoading(false);
       })
-      .catch((err) => {
+      .catch(err => {
         setError(err.message);
         setLoading(false);
       });
   }, []);
 
   return (
-    <div className="logs-container">
-      <h2>View Logs</h2>
-      {loading && <p>Loading logs...</p>}
-      {error && <p className="error">{error}</p>}
-      {!loading && !error && (
-        <div className="logs-list">
-          {logs.length > 0 ? (
-            logs.map((log, index) => (
-              <div key={index} className="log-entry">
-                <p><strong>Timestamp:</strong> {log.timestamp}</p>
-                <p><strong>Event:</strong> {log.event}</p>
-              </div>
-            ))
-          ) : (
-            <p>No logs found.</p>
-          )}
-        </div>
+    <div className="view-logs-container">
+      <h2>System Logs</h2>
+
+      {loading && <p className="loading">Loading logs...</p>}
+      {error && <p className="error">Error: {error}</p>}
+      {!loading && !error && logs.length === 0 && (
+        <p className="no-logs">No logs available.</p>
       )}
+
+      <div className="logs-grid">
+        {logs.map((log, index) => (
+          <div key={index} className="log-card">
+            <div className="log-timestamp">🕒 {new Date(log.timestamp).toLocaleString()}</div>
+            <div className="log-user">👤 {log.username || "Unknown"}</div>
+            <div className="log-event">📍 {log.event}</div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
