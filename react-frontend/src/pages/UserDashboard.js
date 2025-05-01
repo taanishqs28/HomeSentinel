@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/styles.css";
+import "../styles/Dashboard.css";
+
 
 const UserDashboard = () => {
   const [username, setUsername] = useState("");
