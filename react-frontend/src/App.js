@@ -1,3 +1,4 @@
+// src/App.js
 import {
   BrowserRouter as Router,
   Routes,
@@ -7,13 +8,14 @@ import {
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
 import AccessGranted from "./pages/AccessGranted";
 import AccessDenied from "./pages/AccessDenied";
 import CreateFaceRecognition from "./pages/CreateFaceRecognition";
 import ViewLogs from "./pages/view-logs";
 import CreateHousehold from "./pages/CreateHousehold";
 import ManageHousehold from "./pages/ManageHousehold";
+import AdminDashboard from "./pages/AdminDashboard";
+import UserDashboard from "./pages/UserDashboard";
 
 function App() {
   return (
@@ -22,13 +24,19 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        
+        {/* Role-based dashboards */}
+        <Route path="/admin-dashboard" element={<AdminDashboard />} />
+        <Route path="/user-dashboard" element={<UserDashboard />} />
+        
         <Route path="/access-granted" element={<AccessGranted />} />
         <Route path="/access-denied" element={<AccessDenied />} />
         <Route path="/create-face-recognition" element={<CreateFaceRecognition />} />
         <Route path="/view-logs" element={<ViewLogs />} />
         <Route path="/create-household" element={<CreateHousehold />} />
         <Route path="/manage-household" element={<ManageHousehold />} />
+        
+        {/* Catch-all fallback */}
         <Route path="*" element={<Home />} />
       </Routes>
     </Router>
