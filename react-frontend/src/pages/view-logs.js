@@ -1,4 +1,4 @@
-// src/pages/ViewLogs.js
+// src/pages/view-logs.js
 import React, { useEffect, useState } from "react";
 import "../styles/styles.css";
 
@@ -7,29 +7,44 @@ const ViewLogs = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const role = localStorage.getItem("role");
+  const username = localStorage.getItem("username");
+
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("Unauthorized: Please log in.");
+      setLoading(false);
+      return;
+    }
+
     fetch("http://localhost:8000/api/logs", {
       headers: {
-        "Authorization": `Bearer ${localStorage.getItem("token")}`
+        Authorization: `Bearer ${token}`
       }
     })
-      .then(res => {
+      .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch logs");
         return res.json();
       })
-      .then(data => {
-        setLogs(data);
+      .then((data) => {
+        // ✅ Filter logs based on role
+        const filteredLogs = role === "admin"
+          ? data // show all logs for household
+          : data.filter((log) => log.username === username); // show only personal logs
+
+        setLogs(filteredLogs);
         setLoading(false);
       })
-      .catch(err => {
+      .catch((err) => {
         setError(err.message);
         setLoading(false);
       });
-  }, []);
+  }, [role, username]);
 
   return (
     <div className="view-logs-container">
-      <h2>System Logs</h2>
+      <h2>{role === "admin" ? "Household Logs" : "Your Logs"}</h2>
 
       {loading && <p className="loading">Loading logs...</p>}
       {error && <p className="error">Error: {error}</p>}

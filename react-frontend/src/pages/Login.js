@@ -15,8 +15,18 @@ const Login = () => {
     e.preventDefault();
     try {
       const response = await api.post("/auth/login", { username, password });
+
+      // ✅ Save token, role, and username
       localStorage.setItem("token", response.data.access_token);
-      navigate("/dashboard");
+      localStorage.setItem("role", response.data.role);
+      localStorage.setItem("username", response.data.username);
+
+      // ✅ Navigate based on role
+      if (response.data.role === "admin") {
+        navigate("/admin-dashboard");
+      } else {
+        navigate("/user-dashboard");
+      }
     } catch (error) {
       setErrorMessage("Invalid username or password");
     }
