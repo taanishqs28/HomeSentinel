@@ -179,3 +179,19 @@ async def invite_user(data: dict, user=Depends(get_current_user)):
         "invite_token": token,
         "invite_url": invite_url
     }
+@router.get("/invite/{token}")
+async def get_invite_details(token: str):
+    invite = await invites_collection.find_one({"token": token, "used": False})
+    if not invite:
+        raise HTTPException(404, "Invite not found or expired")
+
+    # Check if invite is older than 4 days
+    expiration_days = 4
+    if (datetime.utcnow() - invite["created_at"]).days > expiration_days:
+        raise HTTPException(400, "Invite has expired")
+
+    return {
+        "name": invite["name"],
+        "email": invite["email"],
+        "household_id": invite["household_id"]
+    }

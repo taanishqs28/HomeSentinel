@@ -5,10 +5,11 @@ login, and retrieving the current user's profile.
 """
 
 from fastapi import APIRouter, HTTPException, Depends
-from models.users import UserModel, LoginModel
-from config import users_collection, households_collection
+from models.users import UserModel, LoginModel, InviteRegisterModel
+from config import users_collection, households_collection, invites_collection
+from bson import ObjectId
 from services.auth_service import hash_password, verify_password, create_access_token, get_current_user
-from datetime import datetime
+from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -43,3 +44,40 @@ async def me(user=Depends(get_current_user)):
     user.pop("_id", None)          # remove raw ObjectId
     return user
 
+@router.post("/invite-register")
+async def invite_register(data: InviteRegisterModel):
+    invite = await invites_collection.find_one({"token": data.token, "used": False})
+    if not invite:
+        raise HTTPException(400, "Invalid or expired invite")
+
+    # Check if username is taken
+    if await users_collection.find_one({"username": data.username}):
+        raise HTTPException(400, "Username already exists")
+
+    hashed_password = hash_password(data.password)
+    new_user = {
+        "name": data.name,
+        "username": data.username.lower(),
+        "email": invite["email"],
+        "password": hashed_password,
+        "household_id": invite["household_id"],
+        "role": "user",
+        "face_embedding": [],
+        "created_at": datetime.utcnow()
+    }
+
+    result = await users_collection.insert_one(new_user)
+
+    # Update household
+    await households_collection.update_one(
+        {"_id": ObjectId(invite["household_id"])},
+        {"$push": {"member_user_ids": str(result.inserted_id)}}
+    )
+
+    # Mark invite as used
+    await invites_collection.update_one(
+        {"_id": invite["_id"]},
+        {"$set": {"used": True}}
+    )
+
+    return {"id": str(result.inserted_id), "message": "Registration successful"}

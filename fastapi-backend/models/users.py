@@ -28,3 +28,11 @@ class LoginModel(BaseModel):
 
     class Config:
         from_attributes = True
+class InviteRegisterModel(BaseModel):
+    token: str
+    name: str
+    username: str
+    password: str = Field(..., min_length=8)
+
+    class Config:
+        from_attributes = True
