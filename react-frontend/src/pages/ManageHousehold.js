@@ -100,6 +100,10 @@ const ManageHousehold = () => {
     );
   };
 
+  const handleBack = () => {
+    navigate("/admin-dashboard");
+  };
+
   return (
     <div className="manage-household-container">
       <h2>🏡 Manage Household</h2>
@@ -145,6 +149,10 @@ const ManageHousehold = () => {
       ) : (
         <p>Loading household info...</p>
       )}
+
+      <button onClick={handleBack} style={{ marginTop: "20px" }}>
+        Back to Dashboard
+      </button>
     </div>
   );
 };
