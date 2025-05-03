@@ -1,4 +1,10 @@
 # fastapi-backend/routes/logs.py
+"""
+This file defines API routes for logging events and retrieving system 
+activity logs for the application.
+"""
+
+
 from fastapi import APIRouter, Depends
 from config import logs_collection
 from services.auth_service import get_current_user

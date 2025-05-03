@@ -1,4 +1,10 @@
 # fastapi-backend/models/users.py
+"""
+This file defines Pydantic models that describe the shape and validation 
+of user data, including registration details and login credentials.
+"""
+
+
 from pydantic import BaseModel, EmailStr, Field
 from typing import List, Optional
 from datetime import datetime

@@ -1,3 +1,10 @@
+"""
+This file defines API routes for managing households, including creating 
+households, listing members, inviting users, promoting members to admin, 
+and removing members.
+"""
+
+
 from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime
 from config import households_collection, users_collection

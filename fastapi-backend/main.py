@@ -1,3 +1,9 @@
+"""
+This file sets up the main FastAPI application, includes all API routers, 
+and configures CORS middleware. It also ensures indexes on the MongoDB collections 
+for users and households at app startup.
+"""
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from config import users_collection, households_collection, logs_collection, invites_collection

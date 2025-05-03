@@ -1,4 +1,9 @@
 # fastapi-backend/config.py
+"""
+This file handles database configuration, connecting to MongoDB, and setting 
+up the main collections used in the application, like users, households, and logs.
+"""
+
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 from dotenv import load_dotenv

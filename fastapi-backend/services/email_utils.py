@@ -1,3 +1,9 @@
+"""
+This file defines utility functions for sending emails, like account invites 
+or notifications, using an SMTP server.
+"""
+
+
 import smtplib
 from email.message import EmailMessage
 from config import EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS

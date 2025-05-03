@@ -1,4 +1,10 @@
 # fastapi-backend/services/auth_service.py
+"""
+This file provides helper functions for authentication, including password 
+hashing, password verification, JWT token creation, and getting the current user 
+from a request.
+"""
+
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
@@ -32,7 +38,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
             raise HTTPException(401, "Invalid credentials")
     except jwt.PyJWTError:
         raise HTTPException(401, "Invalid credentials")
-    user = await users_collection.find_one({"username": username})
+    user = await users_collection.find_one({"username": {"$regex": f"^{username}$", "$options": "i"}})
     if not user:
         raise HTTPException(401, "User not found")
     return user

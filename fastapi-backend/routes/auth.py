@@ -1,4 +1,9 @@
 # fastapi-backend/routes/auth.py
+"""
+This file defines authentication API routes, including user registration, 
+login, and retrieving the current user's profile.
+"""
+
 from fastapi import APIRouter, HTTPException, Depends
 from models.users import UserModel, LoginModel
 from config import users_collection, households_collection
@@ -12,6 +17,7 @@ async def register(user: UserModel):
     if await users_collection.find_one({"$or": [{"email": user.email}, {"username":user.username}]}):
         raise HTTPException(400, "Email or username exists")
     doc = user.model_dump()
+    doc["username"]    = doc["username"].lower()
     doc["password"]    = hash_password(user.password)
     doc["created_at"]  = datetime.utcnow()
     result = await users_collection.insert_one(doc)
@@ -24,7 +30,7 @@ async def register(user: UserModel):
 
 @router.post("/login")
 async def login(creds: LoginModel):
-    rec = await users_collection.find_one({"username": creds.username})
+    rec = await users_collection.find_one({"username": {"$regex": f"^{creds.username}$", "$options": "i"}})
     if not rec or not verify_password(creds.password, rec["password"]):
         raise HTTPException(400, "Invalid credentials")
     token = create_access_token(creds.username)

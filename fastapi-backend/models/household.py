@@ -1,4 +1,10 @@
 # fastapi-backend/models/household.py
+"""
+This file defines the Pydantic model for a household, describing its structure 
+and validation rules, including name, address, admins, and members.
+"""
+
+
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
