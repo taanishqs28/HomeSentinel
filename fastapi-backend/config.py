@@ -10,7 +10,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 MONGO_URI = os.getenv("MONGO_URI")
-MONGO_URI="mongodb+srv://mongoDB:SeniorDesign@cluster0.yftfhhu.mongodb.net/"
+if not MONGO_URI:
+    raise ValueError("MONGO_URI environment variable is not set.")
 client    = AsyncIOMotorClient(MONGO_URI)
 db        = client["homesentinel"]
 
