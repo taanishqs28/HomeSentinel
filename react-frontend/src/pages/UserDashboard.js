@@ -1,9 +1,7 @@
-// src/pages/UserDashboard.js
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/styles.css";
 import "../styles/Dashboard.css";
-
 
 const UserDashboard = () => {
   const [username, setUsername] = useState("");
@@ -12,7 +10,8 @@ const UserDashboard = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     const storedUsername = localStorage.getItem("username");
-    if (!token || !storedUsername) {
+    const role = localStorage.getItem("role");
+    if (!token || !storedUsername || role !== "user") {
       navigate("/login");
     } else {
       setUsername(storedUsername);
@@ -24,6 +23,7 @@ const UserDashboard = () => {
       <h2>User Dashboard</h2>
       <p>Welcome, {username}</p>
       <button onClick={() => navigate("/view-logs")}>View My Logs</button>
+      <button onClick={() => navigate("/create-face-recognition")}>Create Face Recognition</button>
       <button
         onClick={() => {
           localStorage.clear();

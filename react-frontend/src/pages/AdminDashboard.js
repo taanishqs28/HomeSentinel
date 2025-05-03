@@ -4,15 +4,20 @@ import "../styles/styles.css";
 import "../styles/Dashboard.css";
 
 
-const Dashboard = () => {
+const AdminDashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login"); // Redirect if not logged in
+    const storedUsername = localStorage.getItem("username");
+    const role = localStorage.getItem("role");
+    if (!token || !storedUsername) {
+      navigate("/login");
+    } else if (role !== "admin") {
+      navigate("/login"); // or navigate("/user-dashboard")
     }
   }, [navigate]);
+  
 
   return (
     <div className="dashboard-container">
@@ -33,4 +38,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default AdminDashboard;
