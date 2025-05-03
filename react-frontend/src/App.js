@@ -16,6 +16,7 @@ import CreateHousehold from "./pages/CreateHousehold";
 import ManageHousehold from "./pages/ManageHousehold";
 import AdminDashboard from "./pages/AdminDashboard";
 import UserDashboard from "./pages/UserDashboard";
+import RegisterInvite from "./pages/RegisterInvite";
 
 function App() {
   return (
@@ -28,7 +29,7 @@ function App() {
         {/* Role-based dashboards */}
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/user-dashboard" element={<UserDashboard />} />
-        
+        <Route path="/register-invite/:token" element={<RegisterInvite />} />
         <Route path="/access-granted" element={<AccessGranted />} />
         <Route path="/access-denied" element={<AccessDenied />} />
         <Route path="/create-face-recognition" element={<CreateFaceRecognition />} />
