@@ -4,8 +4,8 @@ import api from "../api";
 
 export default function CreateFaceRecognition() {
   const [file, setFile] = useState(null);
-  const [msg, setMsg]   = useState("");
-  const navigate        = useNavigate();
+  const [msg, setMsg] = useState("");
+  const navigate = useNavigate();
 
   const handleEnroll = async () => {
     if (!file) {
@@ -20,9 +20,25 @@ export default function CreateFaceRecognition() {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setMsg("Face enrolled! Redirecting to dashboard…");
-      setTimeout(() => navigate("/dashboard"), 1500);
+      setTimeout(() => {
+        const role = localStorage.getItem("role");
+        if (role === "admin") {
+          navigate("/admin-dashboard");
+        } else {
+          navigate("/user-dashboard");
+        }
+      }, 1500);
     } catch (err) {
       setMsg("Enrollment failed: " + (err.response?.data?.detail || err.message));
+    }
+  };
+
+  const handleBack = () => {
+    const role = localStorage.getItem("role");
+    if (role === "admin") {
+      navigate("/admin-dashboard");
+    } else {
+      navigate("/user-dashboard");
     }
   };
 
@@ -32,11 +48,13 @@ export default function CreateFaceRecognition() {
       <input
         type="file"
         accept="image/*"
-        onChange={e => setFile(e.target.files[0])}
+        onChange={(e) => setFile(e.target.files[0])}
       />
       <br /><br />
       <button onClick={handleEnroll}>Upload & Enroll</button>
       {msg && <p>{msg}</p>}
+      <br />
+      <button onClick={handleBack}>Back to Dashboard</button>
     </div>
   );
 }
