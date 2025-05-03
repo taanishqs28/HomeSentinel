@@ -16,22 +16,23 @@ const Login = () => {
       const response = await api.post("/auth/login", { username, password });
       const token = response.data.access_token;
       localStorage.setItem("token", token);
-  
+      
       // Fetch user profile
       const profileResponse = await api.get("/auth/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const user = profileResponse.data;
-  
+      
       localStorage.setItem("username", user.username);
       localStorage.setItem("role", user.role);
-  
+      
       // Redirect to appropriate dashboard
       if (user.role === "admin") {
         navigate("/admin-dashboard");
       } else {
         navigate("/user-dashboard");
       }
+      
     } catch (error) {
       setErrorMessage("Invalid username or password");
     }

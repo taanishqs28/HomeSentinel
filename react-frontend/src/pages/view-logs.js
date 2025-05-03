@@ -8,28 +8,42 @@ const ViewLogs = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  const role = localStorage.getItem("role");
+  const username = localStorage.getItem("username");
+
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("Unauthorized: Please log in.");
+      setLoading(false);
+      return;
+    }
+
     fetch("http://localhost:8000/api/logs", {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
+        Authorization: `Bearer ${token}`
+      }
     })
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch logs");
         return res.json();
       })
       .then((data) => {
-        setLogs(data);
+        // ✅ Filter logs based on role
+        const filteredLogs = role === "admin"
+          ? data // show all logs for household
+          : data.filter((log) => log.username === username); // show only personal logs
+
+        setLogs(filteredLogs);
         setLoading(false);
       })
       .catch((err) => {
         setError(err.message);
         setLoading(false);
       });
-  }, []);
+  }, [role, username]);
 
   const handleBack = () => {
-    const role = localStorage.getItem("role");
     if (role === "admin") {
       navigate("/admin-dashboard");
     } else {
@@ -39,7 +53,7 @@ const ViewLogs = () => {
 
   return (
     <div className="view-logs-container">
-      <h2>System Logs</h2>
+      <h2>{role === "admin" ? "Household Logs" : "Your Logs"}</h2>
 
       {loading && <p className="loading">Loading logs...</p>}
       {error && <p className="error">Error: {error}</p>}
