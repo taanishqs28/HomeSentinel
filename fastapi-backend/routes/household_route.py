@@ -98,6 +98,8 @@ async def remove_member(data: dict, user=Depends(get_current_user)):
     from bson import ObjectId
 
     target_id = data.get("user_id")
+    if str(user["_id"]) == target_id:
+        raise HTTPException(400, "You cannot remove yourself")
     if not target_id:
         raise HTTPException(400, "Missing user_id")
 
@@ -129,6 +131,34 @@ async def remove_member(data: dict, user=Depends(get_current_user)):
     )
 
     return {"message": "User removed from household"}
+
+# Demote Admin to User:
+@router.post("/demote")
+async def remove_admin(data: dict, user=Depends(get_current_user)):
+    target_id = data.get("user_id")
+    if str(user["_id"]) == target_id:
+        raise HTTPException(400, "You cannot demote yourself")
+    if not target_id:
+        raise HTTPException(400, "Missing user_id")
+
+    household = await households_collection.find_one({"_id": ObjectId(user["household_id"])})
+    if not household or str(user["_id"]) not in household["admin_user_ids"]:
+        raise HTTPException(403, "Only admins can demote other admins")
+
+    target_user = await users_collection.find_one({"_id": ObjectId(target_id)})
+    if not target_user or target_user.get("household_id") != user["household_id"]:
+        raise HTTPException(404, "User not found or not in household")
+
+    if target_user["role"] != "admin":
+        return {"message": "User is not an admin"}
+
+    await users_collection.update_one({"_id": ObjectId(target_id)}, {"$set": {"role": "user"}})
+    await households_collection.update_one(
+        {"_id": ObjectId(user["household_id"])},
+        {"$pull": {"admin_user_ids": target_id}}
+    )
+
+    return {"message": "User demoted to user role"}
 
 
 @router.post("/invite")
