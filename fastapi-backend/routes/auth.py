@@ -10,6 +10,7 @@ from config import users_collection, households_collection, invites_collection
 from bson import ObjectId
 from services.auth_service import hash_password, verify_password, create_access_token, get_current_user
 from datetime import datetime, timedelta
+import random
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -17,17 +18,20 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 async def register(user: UserModel):
     if await users_collection.find_one({"$or": [{"email": user.email}, {"username":user.username}]}):
         raise HTTPException(400, "Email or username exists")
+    # Generate a random 6-8 digit PIN as a string
+    failsafe_pin = str(random.randint(10**5, 10**8 - 1))
     doc = user.model_dump()
     doc["username"]    = doc["username"].lower()
     doc["password"]    = hash_password(user.password)
     doc["created_at"]  = datetime.utcnow()
+    doc["failsafe_pin"] = failsafe_pin
     result = await users_collection.insert_one(doc)
     if user.household_id:
         await households_collection.update_one(
             {"_id": user.household_id},
             {"$push": {"member_user_ids": str(result.inserted_id)}}
         )
-    return {"id": str(result.inserted_id)}
+    return {"id": str(result.inserted_id), "failsafe_pin": failsafe_pin}
 
 @router.post("/login")
 async def login(creds: LoginModel):

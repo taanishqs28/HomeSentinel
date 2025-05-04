@@ -16,6 +16,8 @@ const Register = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [failsafePin, setFailsafePin] = useState("");
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -53,9 +55,15 @@ const Register = () => {
     };
 
     try {
-      await api.post("/auth/register", payload);
-      setMessage("✅ Registration successful! Redirecting to login...");
-      setTimeout(() => navigate("/login"), 2000);
+      const res = await api.post("/auth/register", payload);
+      if (res.data && res.data.failsafe_pin) {
+        setFailsafePin(res.data.failsafe_pin);
+        setShowPinModal(true);
+        setMessage("");
+      } else {
+        setMessage("✅ Registration successful! Redirecting to login...");
+        setTimeout(() => navigate("/login"), 2000);
+      }
     } catch (error) {
       const detail = error.response?.data?.detail;
       if (Array.isArray(detail)) {
@@ -170,7 +178,29 @@ const Register = () => {
           </p>
         )}
       </div>
-    </div>
+    {/* Modal for failsafe PIN */}
+    {showPinModal && (
+      <div className="modal-overlay">
+        <div className="modal-content">
+          <h3>Failsafe PIN</h3>
+          <p style={{ fontSize: "2rem", fontWeight: "bold", letterSpacing: "0.2em" }}>{failsafePin}</p>
+          <p>
+            This is your failsafe PIN. Please write it down and keep it safe. You will not be able to see it again.
+          </p>
+          <button
+            onClick={() => {
+              setShowPinModal(false);
+              setMessage("✅ Registration successful! Redirecting to login...");
+              setTimeout(() => navigate("/login"), 2000);
+            }}
+            style={{ marginTop: "1rem" }}
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    )}
+  </div>
   );
 };
 

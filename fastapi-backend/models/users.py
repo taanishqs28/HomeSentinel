@@ -18,6 +18,7 @@ class UserModel(BaseModel):
     role:         str = Field("user", pattern="^(admin|user)$")
     face_embedding: List[float] = []
     created_at:   Optional[datetime]
+    failsafe_pin: Optional[str] = None
 
     class Config:
         from_attributes = True  # note: pydantic v2 key
