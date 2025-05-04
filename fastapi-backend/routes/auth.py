@@ -40,8 +40,10 @@ async def login(creds: LoginModel):
 @router.get("/me")
 async def me(user=Depends(get_current_user)):
     user.pop("password", None)
-    user["id"] = str(user["_id"])  # add this
-    user.pop("_id", None)          # remove raw ObjectId
+    user["id"] = str(user["_id"])
+    user["current_user_id"] = str(user["_id"])      # add this line
+    user["current_user_email"] = user["email"]      # add this line
+    user.pop("_id", None)
     return user
 
 @router.post("/invite-register")
