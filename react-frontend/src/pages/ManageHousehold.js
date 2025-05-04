@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
+import HouseholdTable from "../component/HouseholdTable.js";
 import "../styles/manage-household.css";
 
 const ManageHousehold = () => {
@@ -8,149 +9,121 @@ const ManageHousehold = () => {
   const [members, setMembers] = useState([]);
   const [error, setError] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(null);
-  const [inviteForm, setInviteForm] = useState({ name: "", email: "" });
-  const [inviteResult, setInviteResult] = useState(null);
+  const [currentUserRole, setCurrentUserRole] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
-      const token = localStorage.getItem("token");
       try {
-        const res1 = await api.get("/household/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res1 = await api.get("/household/me");
         setHousehold(res1.data);
+        setCurrentUserRole(res1.data.current_user_role || "user");
 
-        const res2 = await api.get("/household/members", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res2 = await api.get("/household/members");
         setMembers(res2.data);
       } catch (err) {
         const message = err.response?.data?.detail || err.message;
         setError(message);
+
+        // Fetch user role even when household is missing
+        try {
+          const userRes = await api.get("/auth/me");
+          setCurrentUserRole(userRes.data.role);
+        } catch (e) {
+          console.error("Failed to get user role", e);
+        }
+
         console.error(message);
       }
     };
-
     fetchData();
   }, []);
 
   const handlePromote = async (userId) => {
+    await api.post("/household/promote", { user_id: userId });
+    refreshMembers();
+  };
+
+  const handleDemote = async (userId) => {
+    if (userId === household?.current_user_id) {
+      alert("You cannot demote yourself from admin.");
+      return;
+    }
     try {
-      await api.post("/household/promote", { user_id: userId });
+      await api.post("/household/demote", { user_id: userId });
       setMembers((prev) =>
-        prev.map((m) => (m.id === userId ? { ...m, role: "admin" } : m))
+        prev.map((m) => (m.id === userId ? { ...m, role: "user" } : m))
       );
       setDropdownOpen(null);
     } catch (err) {
-      alert("Failed to promote user.");
+      alert("Failed to demote user.");
     }
   };
 
   const handleRemove = async (userId) => {
-    if (!window.confirm("Are you sure you want to remove this member?")) return;
+    if (userId === household?.current_user_id) {
+      alert("You cannot remove yourself.");
+      return;
+    }
     try {
       await api.post("/household/remove-member", { user_id: userId });
       setMembers((prev) => prev.filter((m) => m.id !== userId));
       setDropdownOpen(null);
     } catch (err) {
-      alert("Failed to remove user.");
+      console.error(err);
+      alert("Failed to remove user. Please try again.");
     }
   };
 
-  const handleInviteSubmit = async () => {
-    try {
-      const res = await api.post("/household/invite", inviteForm);
-      setInviteResult(res.data.invite_url);
-      setInviteForm({ name: "", email: "" });
-    } catch (err) {
-      alert(err.response?.data?.detail || "Failed to send invite");
-    }
-  };
-
-  const renderMemberRow = (member) => {
-    const isSelf = member.email === household?.current_user_email;
-    return (
-      <div className="member-row" key={member.id}>
-        <div className="member-info">
-          <span className="member-name">{member.name}</span>
-          <span className="member-role">{member.role} — {member.email}</span>
-        </div>
-        {!isSelf && (
-          <div className="member-actions">
-            <button
-              className="actions-button"
-              onClick={() =>
-                setDropdownOpen((prev) => (prev === member.id ? null : member.id))
-              }
-            >
-              ⋮
-            </button>
-            {dropdownOpen === member.id && (
-              <div className="dropdown">
-                {member.role !== "admin" && (
-                  <button onClick={() => handlePromote(member.id)}>Promote to Admin</button>
-                )}
-                <button onClick={() => handleRemove(member.id)}>Remove</button>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const handleBack = () => {
-    navigate("/admin-dashboard");
+  const refreshMembers = async () => {
+    const res = await api.get("/household/members");
+    setMembers(res.data);
+    setDropdownOpen(null);
   };
 
   return (
     <div className="manage-household-container">
       <h2>🏡 Manage Household</h2>
-
-      {error?.includes("User is not part of any household") ? (
+      {error ? (
         <>
-          <p style={{ color: "orange" }}>You haven’t created a household yet.</p>
-          <button onClick={() => navigate("/create-household")}>Create One Now</button>
-        </>
-      ) : error ? (
-        <p style={{ color: "red" }}>{error}</p>
-      ) : household ? (
-        <>
-          <h3>Household: {household.name.replace(/\b\w/g, (c) => c.toUpperCase())}</h3>
-          <p>📍 Address: {household.address}</p>
-
-          <h3>👥 Members</h3>
-          <div>{members.map((m) => renderMemberRow(m))}</div>
-
-          <h3>📨 Invite New Member</h3>
-          <input
-            type="text"
-            placeholder="Full Name"
-            value={inviteForm.name}
-            onChange={(e) => setInviteForm({ ...inviteForm, name: e.target.value })}
-          />
-          <input
-            type="email"
-            placeholder="Email"
-            value={inviteForm.email}
-            onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
-          />
-          <button onClick={handleInviteSubmit}>Send Invite</button>
-
-          {inviteResult && (
-            <div style={{ marginTop: "10px" }}>
-              <p>✅ Invite Sent!</p>
-              <code>{inviteResult}</code>
-              <button onClick={() => navigator.clipboard.writeText(inviteResult)}>Copy Link</button>
-            </div>
+          <p style={{ color: "red" }}>{error}</p>
+          {currentUserRole === "admin" && (
+            <button
+              className="add-member-btn"
+              onClick={() => navigate("/create-household")}
+              style={{ marginBottom: "20px" }}
+            >
+              ➕ Create Household
+            </button>
           )}
         </>
+      ) : household ? (
+        <>
+          <h3>Household: {household.name}</h3>
+          <p>📍 {household.address}</p>
+          <button
+            className="add-member-btn"
+            onClick={() => navigate("/add-member")}
+          >
+            ➕ Add Member
+          </button>
+          <HouseholdTable
+            members={members}
+            household={household}
+            dropdownOpen={dropdownOpen}
+            setDropdownOpen={setDropdownOpen}
+            handlePromote={handlePromote}
+            handleDemote={handleDemote}
+            handleRemove={handleRemove}
+          />
+        </>
       ) : (
-        <p>Loading household info...</p>
+        <p>Loading...</p>
       )}
-
-      <button onClick={handleBack} style={{ marginTop: "20px" }}>
+      <button
+        onClick={() => navigate("/admin-dashboard")}
+        className="back-btn"
+      >
         Back to Dashboard
       </button>
     </div>

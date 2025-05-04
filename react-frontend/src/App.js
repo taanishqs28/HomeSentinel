@@ -17,6 +17,7 @@ import ManageHousehold from "./pages/ManageHousehold";
 import AdminDashboard from "./pages/AdminDashboard";
 import UserDashboard from "./pages/UserDashboard";
 import RegisterInvite from "./pages/RegisterInvite";
+import AddMember from "./pages/AddMember";
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
         <Route path="/view-logs" element={<ViewLogs />} />
         <Route path="/create-household" element={<CreateHousehold />} />
         <Route path="/manage-household" element={<ManageHousehold />} />
+        <Route path="/add-member" element={<AddMember />} />
         
         {/* Catch-all fallback */}
         <Route path="*" element={<Home />} />
