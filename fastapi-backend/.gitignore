@@ -1,7 +1,7 @@
 # Ignore Python bytecode
 __pycache__/
 *.pyc
-
+venv/
 # Ignore environment variables
 .env
 
