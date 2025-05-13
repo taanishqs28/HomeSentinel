@@ -3,7 +3,10 @@ import { useLocation } from "react-router-dom";
 
 const AccessGranted = () => {
   const location = useLocation();
-  const username = location.state?.user || "User";
+  const username =
+    location.state?.user ||
+    localStorage.getItem("username") ||
+    "User";
 
   return (
     <div style={{ textAlign: "center", marginTop: "100px" }}>

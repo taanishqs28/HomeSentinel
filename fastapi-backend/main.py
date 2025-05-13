@@ -34,7 +34,7 @@ async def ensure_indexes_and_clear_dev_data():
     await users_collection.create_index("username", unique=True)
     await households_collection.create_index("name", unique=True)
 
-    # 🔥 TEMP: Clear all collections (development only)
+    #🔥 TEMP: Clear all collections (development only)
     # await users_collection.delete_many({})
     # await households_collection.delete_many({})
     # await logs_collection.delete_many({})

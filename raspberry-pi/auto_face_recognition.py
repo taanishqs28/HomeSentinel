@@ -1,41 +1,38 @@
-# raspberry-pi/auto_face_recognition.py
+# raspberry-pi/server.py
+from flask import Flask, jsonify
+import cv2, numpy as np, base64, requests
 from picamera2 import Picamera2
-import cv2, numpy as np, requests, time
 
-# change to your backend’s IP or hostname
-SERVER_URL = "http://10.20.32.55:8000/verify-face/" 
+app = Flask(__name__)
 
-cascade = cv2.CascadeClassifier(cv2.data.haarcascades +
-                                'haarcascade_frontalface_default.xml')
+# Your backend route for verifying face
+BACKEND_URL = "http://10.20.32.55:8000/face/trigger-verify"  # change IP as needed
 
+# Face detector
+cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 picam2 = Picamera2()
 picam2.configure(picam2.create_preview_configuration(main={"size": (640, 480)}))
 picam2.start()
 
-print("Live face detection started. Press 'q' to quit.")
-last_upload = 0
-interval    = 5  # seconds
-
-while True:
+@app.route("/capture", methods=["POST"])
+def capture():
+    print("Trigger received. Capturing frame...")
     frame = picam2.capture_array()
-    bgr   = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-    gray  = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
+    bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+    gray = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
 
     faces = cascade.detectMultiScale(gray, 1.1, 5)
-    for (x,y,w,h) in faces:
-        cv2.rectangle(bgr, (x,y),(x+w,y+h),(0,255,0),2)
+    if len(faces) == 0:
+        return jsonify({"status": "No face detected"}), 400
 
-    cv2.imshow("Live Face Detection", bgr)
+    _, img_encoded = cv2.imencode('.jpg', bgr)
+    b64_image = base64.b64encode(img_encoded).decode()
+    try:
+        response = requests.post(BACKEND_URL, json={"image_data": b64_image})
+        return jsonify(response.json())
+    except Exception as e:
+        print("Error sending to backend:", e)
+        return jsonify({"error": str(e)}), 500
 
-    now = time.time()
-    if len(faces) and (now - last_upload) > interval:
-        _, img_encoded = cv2.imencode('.jpg', bgr)
-        resp = requests.post(SERVER_URL, files={"file": img_encoded.tobytes()})
-        print(resp.json())
-        last_upload = now
-
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-
-cv2.destroyAllWindows()
-picam2.stop()
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)  # Accessible within local network

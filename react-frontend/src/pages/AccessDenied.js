@@ -1,39 +1,35 @@
+// src/pages/AccessDenied.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import "../styles/AccessDenied.css";
 
 const AccessDenied = () => {
-  const [pin, setPin] = useState("");
+  const [pin, setPin]     = useState("");
   const [error, setError] = useState("");
-  const navigate = useNavigate();
+  const navigate          = useNavigate();
 
   const handleSubmitPin = async () => {
     try {
-      const response = await api.post("/auth/verify-pin", { pin });
+      const res = await api.post("/auth/verify-pin", { pin });
+      const { token, username, role } = res.data;
 
-      if (response.data.status === "success") {
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("role", response.data.role);
-        localStorage.setItem("username", response.data.username);
+      // persist for downstream pages
+      localStorage.setItem("token", token);
+      localStorage.setItem("username", username);
+      localStorage.setItem("role", role);
 
-        if (response.data.role === "admin") {
-          navigate("/admin-dashboard");
-        } else {
-          navigate("/user-dashboard");
-        }
-      } else {
-        setError("Incorrect PIN. Try again.");
-      }
+      // go to AccessGranted
+      navigate("/access-granted", { state: { user: username } });
     } catch (err) {
-      setError("PIN verification failed.");
+      setError("Not a valid PIN. Try again.");
     }
   };
 
   return (
     <div className="access-denied-container">
-      <h2>Access Denied</h2>
-      <p>Face not recognized. Enter your PIN to continue or use guest access.</p>
+      <h2>❌ Access Denied</h2>
+      <p>Face not recognized. Enter your failsafe PIN to continue.</p>
 
       <input
         type="password"
@@ -48,7 +44,9 @@ const AccessDenied = () => {
 
       <hr style={{ margin: "20px 0" }} />
 
-      <button onClick={() => navigate("/guest")}>Continue as Guest</button>
+      <button onClick={() => navigate("/guest")}>
+        Continue as Guest
+      </button>
     </div>
   );
 };

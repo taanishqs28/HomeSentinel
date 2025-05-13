@@ -1,6 +1,13 @@
+"""
+This file defines API routes for enrolling and verifying face embeddings 
+using the face_recognition library, enabling biometric access control.
+"""
+
+
 from fastapi import APIRouter, HTTPException, File, UploadFile, Depends
 from datetime import datetime
 import os, numpy as np, cv2, dlib
+import base64
 from scipy.spatial.distance import cosine
 from config import users_collection, logs_collection
 from services.auth_service import get_current_user
@@ -36,16 +43,20 @@ async def enroll_face(
     )
     return {"message": "Face enrolled"}
 
-@router.post("/verify")
-async def verify_face(file: UploadFile = File(...)):
-    data = await file.read()
-    img = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
+@router.post("/trigger-verify")
+async def trigger_verify(payload: dict):
+    image_data = payload.get("image_data")
+    if not image_data:
+        raise HTTPException(400, "Missing image data")
+
+    img_bytes = base64.b64decode(image_data)
+    img = cv2.imdecode(np.frombuffer(img_bytes, np.uint8), cv2.IMREAD_COLOR)
     rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     faces = _detector(rgb, 1)
     if not faces:
         await logs_collection.insert_one({"timestamp": datetime.utcnow(), "status": "No face"})
-        raise HTTPException(400, "No face detected")
+        return {"status": "Access Denied", "reason": "No face detected"}
 
     shape = _shape_predictor(rgb, faces[0])
     emb = np.array(_face_rec_model.compute_face_descriptor(rgb, shape))
@@ -65,25 +76,14 @@ async def verify_face(file: UploadFile = File(...)):
             highest_sim = sim
 
     if best_match:
-        if best_match.get("household_id"):
-            await logs_collection.insert_one({
-                "timestamp": datetime.utcnow(),
-                "username": best_match["username"],
-                "status": "Access Granted",
-                "similarity": highest_sim,
-                "household_id": best_match.get("household_id")
-            })
-            return {"status": "Access Granted", "user": best_match["username"]}
-        else:
-            await logs_collection.insert_one({
-                "timestamp": datetime.utcnow(),
-                "username": best_match["username"],
-                "status": "Access Denied (No household assigned)",
-                "similarity": highest_sim
-            })
-            return {"status": "Access Denied"}
+        await logs_collection.insert_one({
+            "timestamp": datetime.utcnow(),
+            "username": best_match["username"],
+            "status": "Access Granted",
+            "similarity": highest_sim
+        })
+        return {"status": "Access Granted", "user": best_match["username"]}
 
-# No match found above threshold
     await logs_collection.insert_one({
         "timestamp": datetime.utcnow(),
         "status": "Access Denied",
