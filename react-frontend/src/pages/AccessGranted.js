@@ -1,19 +1,32 @@
 import React from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+// only bring in the CSS that defines .top-left/.home-button
+import "../styles/Login.css";
 
-const AccessGranted = () => {
-  const location = useLocation();
-  const username =
-    location.state?.user ||
-    localStorage.getItem("username") ||
-    "User";
+export default function AccessGranted() {
+  const navigate = useNavigate();
+  const user     = useLocation().state?.user || localStorage.getItem("username");
 
   return (
-    <div style={{ textAlign: "center", marginTop: "100px" }}>
-      <h2>✅ Access Granted</h2>
-      <p>Welcome, {username}!</p>
+    // this outer div can be as simple as your normal page wrapper
+    // I’m assuming in App.js you already render each <Page /> inside
+    // a div that has your global centering/padding styles
+    <div>
+      {/* Home button in the absolute top-left, same as Login */}
+      <div className="top-left">
+        <button
+          className="home-button"
+          onClick={() => navigate("/")}
+        >
+          Home
+        </button>
+      </div>
+
+      {/* your existing “Access Granted” content */}
+      <div style={{ textAlign: "center", marginTop: 80 }}>
+        <h2>✅ Access Granted</h2>
+        <p>Welcome back, <strong>{user}</strong>!</p>
+      </div>
     </div>
   );
-};
-
-export default AccessGranted;
+}
