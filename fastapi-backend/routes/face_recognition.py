@@ -101,7 +101,12 @@ async def trigger_verify(payload: dict):
         result      = {"status": status_text, "similarity": best_sim}
 
     # Log attempt
-    log_doc = {"timestamp": datetime.utcnow(), "status": status_text, "similarity": best_sim}
+    log_doc = {
+        "timestamp": datetime.utcnow(), 
+        "status": status_text, 
+        "similarity": best_sim,
+        "household_id": best_user.get("household_id") if best_user else None,
+        }
     if status_text == "Access Granted":
         log_doc["username"] = best_user["username"]
     await logs_collection.insert_one(log_doc)
