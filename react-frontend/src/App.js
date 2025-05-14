@@ -11,7 +11,7 @@ import Register from "./pages/Register";
 import AccessGranted from "./pages/AccessGranted";
 import AccessDenied from "./pages/AccessDenied";
 import CreateFaceRecognition from "./pages/CreateFaceRecognition";
-import ViewLogs from "./pages/view-logs";
+import ViewLogs from "./pages/ViewLogs";
 import CreateHousehold from "./pages/CreateHousehold";
 import ManageHousehold from "./pages/ManageHousehold";
 import AdminDashboard from "./pages/AdminDashboard";
