@@ -8,7 +8,7 @@ export default function GainAccess() {
   const [countdown, setCountdown] = useState(5);
   const [error, setError]         = useState("");
 
-  const PI_BASE     = "http://10.20.32.94:5000";
+  const PI_BASE     = "http://10.20.32.94:5000"; // Replace with your actual Raspberry Pi IP address
   const CAPTURE_URL = `${PI_BASE}/capture`;
   const VIDEO_FEED  = `${PI_BASE}/video_feed`;
 

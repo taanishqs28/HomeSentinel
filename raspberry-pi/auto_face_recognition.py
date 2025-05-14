@@ -7,7 +7,7 @@ from picamera2 import Picamera2
 
 app = Flask(__name__)
 CORS(app)
-BACKEND_URL = "http://10.20.32.55:8000/face/trigger-verify"
+BACKEND_URL = "http://10.20.32.55:8000/face/trigger-verify" # Replace with your backend URL
 
 # Haar cascade for face detection
 cascade = cv2.CascadeClassifier(
