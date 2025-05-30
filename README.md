@@ -69,3 +69,6 @@ npm start
    ```
 
 Now your Raspberry Pi should capture images and communicate with your backend to grant or deny access based on facial recognition.
+For a live demo of the project working you can visit: https://youtu.be/PT9Fdsoap80
+
+For any questions related to the project, please feel free to contact at taanishqsethi28@gmail.com
